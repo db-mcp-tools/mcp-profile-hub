@@ -22,7 +22,7 @@ from __future__ import annotations
 import os
 import time
 
-from dbmcp import register, make_server
+from dbcore.mcp_kit import make_server, register
 from dbcore import ids as IDS
 from dbknow import metrics as M
 from dbstore import (

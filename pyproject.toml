@@ -11,10 +11,9 @@ requires-python = ">=3.9"
 license = {text = "Proprietary"}
 
 dependencies = [
-    "dbt-core>=0.2.0",
+    "dbt-core[mcp]>=0.2.0",
     "dbt-store>=0.2.0",
     "dbt-know>=0.2.0",
-    "dbt-mcp-kit>=0.2.0",
 ]
 
 [project.scripts]

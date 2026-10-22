@@ -11,7 +11,7 @@ pip install ./mcp-profile-hub              # 在工具链根目录下执行
 pip install "./mcp-profile-hub[mysql]"     # 需要连库时补驱动，或 [postgres]
 ```
 
-会自动带上它需要的共享库：`dbt-core`（指纹/协议）、`dbt-store`（真正干活的存储库）、`dbt-know`（指标字典）、`dbt-mcp-kit`。**不会**带其他 MCP。
+会自动带上它需要的共享库：`dbt-core`（指纹/协议）、`dbt-store`（真正干活的存储库）、`dbt-know`（指标字典）。**不会**带其他 MCP。
 
 ## 挂到 MCP 客户端
 
