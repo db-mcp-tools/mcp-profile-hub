@@ -78,6 +78,30 @@ check("审计写入", PH.query_audit().to_dict()["data"]["count"] >= 1)
 PH.link_cross_instance_tool("hub-test-1", "hub-test-2", "same_business")
 check("实例关联", PH.get_related_instances("hub-test-1").to_dict()["data"]["count"] >= 1)
 
+# ------------------------------------------------------------------
+# 工具粒度回归：query_observations 吸收 get_history 之后的能力
+# ------------------------------------------------------------------
+PH.record_observation_tool("hub-test-1", "review", {"verdict": "pass"})
+_all_obs = PH.query_observations("hub-test-1").to_dict()
+_only_snap = PH.query_observations("hub-test-1", kind="snapshot").to_dict()
+check("观测查询：kind 不传返回全部", _all_obs["data"]["count"] >= 2,
+      str(_all_obs["data"]["count"]))
+check("观测查询：kind 可过滤（原 get_history 的能力）",
+      0 < _only_snap["data"]["count"] < _all_obs["data"]["count"],
+      f"{_only_snap['data']['count']} / {_all_obs['data']['count']}")
+check("get_history 已并入 query_observations，不再是独立工具",
+      "get_history" not in PH.TOOLS)
+
+# ------------------------------------------------------------------
+# 可用性门禁：每个工具必须有 docstring
+# 缺了不会报错，但 tools 列表和 README 工具表会留下空白描述 ——
+# 模型只能靠名字猜用途，等于工具白做。
+# ------------------------------------------------------------------
+import inspect  # noqa: E402
+
+_undocumented = [n for n, f in PH.TOOLS.items() if not (inspect.getdoc(f) or "").strip()]
+check("每个工具都有 docstring", not _undocumented, ", ".join(_undocumented))
+
 # ==================================================================
 
 

@@ -97,7 +97,11 @@ def record_observation_tool(instance_id: str, kind: str, payload: dict,
 
 
 def get_instance_profile(instance_id: str, correlation_id: str = "") -> Result:
-    """实例全貌 —— 给 LLM 和客户看的完整画像。"""
+    """实例全貌 —— 给 LLM 和客户看的完整画像（元数据 + 档位 + 最近观测 + 基线 + 技术债）。
+
+    只想快速判断"这台库现在能做什么诊断"用 tier_of，它的返回更小、
+    并附带 tier 提升路径；需要完整上下文时才用这个。
+    """
     prof = get_profile(instance_id)
     if not prof.get("known"):
         res = Result(
@@ -120,6 +124,14 @@ def get_instance_profile(instance_id: str, correlation_id: str = "") -> Result:
 
 def query_observations(instance_id: str, kind: str | None = None, limit: int = 50,
                        days: int | None = None, correlation_id: str = "") -> Result:
+    """按时间倒序查观测记录；kind 不传则返回全部类型。
+
+    观测是"发生了什么"的原始记录（快照 / 体检 / 变更事件 / 执行计划…），
+    每条带 payload 与时间戳。要取**某个指标的连续数值序列**做趋势或异常检测，
+    用 metric_series —— 它读的是 raw 指标表，不是观测表。
+
+    days 用于限定时间窗；不传则不限。
+    """
     since = time.time() - days * 86400 if days else None
     rows = get_history(instance_id, kind=kind, limit=limit, since=since)
     return Result(
@@ -131,20 +143,14 @@ def query_observations(instance_id: str, kind: str | None = None, limit: int = 5
     )
 
 
-def get_history_tool(instance_id: str, kind: str, limit: int = 30,
-                     correlation_id: str = "") -> Result:
-    rows = get_history(instance_id, kind=kind, limit=limit)
-    return Result(
-        ok=True, mcp=MCP_NAME, tool="get_history",
-        data={"items": rows, "count": len(rows)},
-        verdict="pass", confidence="high", tier=tier_of(instance_id, kind),
-        summary=f"{kind} 类观测 {len(rows)} 条",
-        instance_id=instance_id, correlation_id=correlation_id,
-    )
-
-
 def set_baseline_tool(instance_id: str, metric: str, value: float,
                       correlation_id: str = "") -> Result:
+    """手工设定一个基线值（人工校准用）。
+
+    基线是"这台实例的常态"，后续异常检测与容量预测都拿它做参照。
+    若想从历史观测自动算出基线，用 compute_baselines —— 它能避免把
+    "某个时间点的偶然值"当成常态。
+    """
     set_baseline(instance_id, metric, value)
     return Result(
         ok=True, mcp=MCP_NAME, tool="set_baseline",
@@ -157,6 +163,11 @@ def set_baseline_tool(instance_id: str, metric: str, value: float,
 
 def get_baseline_tool(instance_id: str, metric: str | None = None,
                       correlation_id: str = "") -> Result:
+    """读取已存在的基线；metric 不传则返回该实例全部基线。
+
+    只读，不会计算。没有基线时返回 verdict=unknown 并给 tier_upgrade 指引，
+    不会编造一个值。要计算基线用 compute_baselines。
+    """
     if metric:
         b = get_baseline(instance_id, metric)
         if b is None:
@@ -189,7 +200,11 @@ def get_baseline_tool(instance_id: str, metric: str | None = None,
 
 def compute_baselines_tool(instance_id: str, window_days: int = 30,
                            correlation_id: str = "") -> Result:
-    """从已有观测计算基线。**单点不算基线**，样本不足会跳过而不是编造。"""
+    """从已有观测计算**标量基线**（每项指标一个常态值）。单点不算基线，样本不足跳过。
+
+    与 compute_metric_baselines 的区别：这个给"一个数"（如常态连接数 42），
+    那个给"一条分布"（p50/p95/p99），用于判断是否越界而非判断是否偏高偏低。
+    """
     out = compute_baselines(instance_id, window_days)
     return Result(
         ok=True, mcp=MCP_NAME, tool="compute_baselines",
@@ -204,6 +219,11 @@ def compute_baselines_tool(instance_id: str, window_days: int = 30,
 
 def record_audit_tool(tool: str, summary: str, instance_id: str = "",
                       correlation_id: str = "") -> Result:
+    """写一条审计留痕：谁在什么时候对哪个实例做了什么。
+
+    与 record_observation 的分工：审计记录的是**操作动作**（可追责），
+    观测记录的是**状态事实**（可分析）。变更类操作落审计，采集类结果落观测。
+    """
     record_audit(tool, instance_id, summary, correlation_id)
     return Result(
         ok=True, mcp=MCP_NAME, tool="record_audit",
@@ -216,6 +236,10 @@ def record_audit_tool(tool: str, summary: str, instance_id: str = "",
 
 def query_audit(instance_id: str | None = None, limit: int = 20,
                 correlation_id: str = "") -> Result:
+    """按时间倒序查审计留痕；instance_id 不传则跨实例返回。
+
+    用于回答"这条变更/这次回滚是谁在什么时候做的"。
+    """
     rows = recent_audit(limit=limit, instance_id=instance_id)
     return Result(
         ok=True, mcp=MCP_NAME, tool="query_audit",
@@ -242,6 +266,11 @@ def link_cross_instance_tool(source_instance: str, target_instance: str,
 
 
 def get_related_instances(instance_id: str, correlation_id: str = "") -> Result:
+    """查与该实例关联的其他实例（同一业务的异构库、主从、上下游）。
+
+    配合 link_cross_instance 使用：那边建关系，这边读关系。
+    跨实例的场景（如 MySQL 与 PG 上同一份业务数据口径对比）靠它找到对端。
+    """
     rows = related_instances(instance_id)
     return Result(
         ok=True, mcp=MCP_NAME, tool="get_related_instances",
@@ -293,6 +322,10 @@ def import_profile_tool(profile: dict, remap_to: str | None = None,
 
 
 def store_stats_tool(correlation_id: str = "") -> Result:
+    """档案库自身的情况：文件大小、各表行数。
+
+    回答"这个库攒了多少东西"，不针对具体实例。要看实例清单用 list_instances。
+    """
     st = store_stats()
     return Result(
         ok=True, mcp=MCP_NAME, tool="store_stats", data=st,
@@ -304,6 +337,11 @@ def store_stats_tool(correlation_id: str = "") -> Result:
 
 
 def list_instances_tool(limit: int = 100, correlation_id: str = "") -> Result:
+    """列出档案库里登记过的实例（id / 方言 / 版本 / 标签 / 档位）。
+
+    想知道"我手上管着哪些库"用这个；要看某一个实例的完整画像用
+    get_instance_profile。库里什么统计都不看、只想知道规模，用 store_stats。
+    """
     rows = list_instances(limit=limit)
     return Result(
         ok=True, mcp=MCP_NAME, tool="list_instances",
@@ -385,7 +423,11 @@ def transition_finding_tool(finding_id: str, to_state: str, fixed_by_change: str
 
 def finding_stats_tool(instance_id: str, status: str | None = None,
                        correlation_id: str = "") -> Result:
-    """技术债总览（月报素材）：开放/已修复/误报率 + 明细清单。"""
+    """技术债总览（月报素材）：开放/已修复/误报率 + 明细清单。
+
+    账本记的是**代码与结构的长期问题**（慢 SQL、缺索引、坏味道），
+    生命周期由 transition_finding 推进。线上故障单用 list_incidents。
+    """
     return Result(
         ok=True, mcp=MCP_NAME, tool="finding_stats",
         data={"stats": finding_stats(instance_id),
@@ -410,7 +452,11 @@ def top_sql_tool(limit: int = 20, correlation_id: str = "") -> Result:
 
 def metric_series_tool(instance_id: str, metric: str, since: float | None = None,
                        until: float | None = None, correlation_id: str = "") -> Result:
-    """读取一维指标时间序列（趋势/容量/异常检测的统一输入）。"""
+    """读取一维指标时间序列（趋势/容量/异常检测的统一输入）。
+
+    与 query_observations 的区别：这个返回**纯数值点**（ts + value），
+    可直接喂给趋势/漂移算法；那个返回带 payload 的观测记录。
+    """
     pts = metric_series(instance_id, metric, since=since, until=until)
     return Result(
         ok=True, mcp=MCP_NAME, tool="metric_series",
@@ -425,7 +471,10 @@ def metric_series_tool(instance_id: str, metric: str, since: float | None = None
 def compute_metric_baselines_tool(instance_id: str, window: str = "1h",
                                   window_days: int = 30, min_samples: int = 30,
                                   correlation_id: str = "") -> Result:
-    """从 raw 指标样本计算分位数基线（p50/p95/p99）。样本不足的指标跳过，绝不编造。"""
+    """从 raw 指标样本计算**分位数基线**（p50/p95/p99）。样本不足的指标跳过，绝不编造。
+
+    与 compute_baselines 的区别：那个算标量常态值，这个算分布，
+    用于回答"当前值落在历史哪个位置"。window 是采样聚合粒度（1h / 5m）。"""
     out = compute_metric_baselines(instance_id, window=window, window_days=window_days,
                                    min_samples=min_samples)
     return Result(
@@ -455,7 +504,6 @@ TOOLS = {
     "record_observation": record_observation_tool,
     "get_instance_profile": get_instance_profile,
     "query_observations": query_observations,
-    "get_history": get_history_tool,
     "set_baseline": set_baseline_tool,
     "get_baseline": get_baseline_tool,
     "compute_baselines": compute_baselines_tool,

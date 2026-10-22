@@ -36,31 +36,30 @@ dbt-profile-hub tools
 dbt-profile-hub call <tool> --args '{"sql": "SELECT 1"}'
 ```
 
-## 工具（25）
+## 工具（24）
 
 | 工具 | 作用 |
 |---|---|
-| `compute_baselines` | 从已有观测计算基线。**单点不算基线**，样本不足会跳过而不是编造。 |
-| `compute_metric_baselines` | 从 raw 指标样本计算分位数基线（p50/p95/p99）。样本不足的指标跳过，绝不编造。 |
+| `compute_baselines` | 从已有观测计算**标量基线**（每项指标一个常态值）。单点不算基线，样本不足跳过。 |
+| `compute_metric_baselines` | 从 raw 指标样本计算**分位数基线**（p50/p95/p99）。样本不足的指标跳过，绝不编造。 |
 | `export_profile` | ★ 导出脱敏知识包。 |
 | `finding_stats` | 技术债总览（月报素材）：开放/已修复/误报率 + 明细清单。 |
-| `get_baseline` | — |
-| `get_history` | — |
-| `get_instance_profile` | 实例全貌 —— 给 LLM 和客户看的完整画像。 |
-| `get_related_instances` | — |
+| `get_baseline` | 读取已存在的基线；metric 不传则返回该实例全部基线。 |
+| `get_instance_profile` | 实例全貌 —— 给 LLM 和客户看的完整画像（元数据 + 档位 + 最近观测 + 基线 + 技术债）。 |
+| `get_related_instances` | 查与该实例关联的其他实例（同一业务的异构库、主从、上下游）。 |
 | `import_profile` | ★ 导入知识包 —— 冷启动的第二条解法。 |
 | `link_cross_instance` | 异构实例关联（同一业务跨多个引擎）—— 这是通用工具做不到的事。 |
 | `list_incidents` | 事故单清单（含诊断结论与时间线）。 |
-| `list_instances` | — |
+| `list_instances` | 列出档案库里登记过的实例（id / 方言 / 版本 / 标签 / 档位）。 |
 | `list_metrics` | 列出某引擎支持的逻辑指标，方便确认能采到什么。 |
 | `metric_series` | 读取一维指标时间序列（趋势/容量/异常检测的统一输入）。 |
-| `query_audit` | — |
-| `query_observations` | — |
-| `record_audit` | — |
+| `query_audit` | 按时间倒序查审计留痕；instance_id 不传则跨实例返回。 |
+| `query_observations` | 按时间倒序查观测记录；kind 不传则返回全部类型。 |
+| `record_audit` | 写一条审计留痕：谁在什么时候对哪个实例做了什么。 |
 | `record_finding` | 登记/累加一条体检发现（技术债账本）。重复出现自动 occurrences+1。 |
 | `record_observation` | 写入一次观测。**这是 Tier0 → Tier2 升级的唯一写入点** |
-| `set_baseline` | — |
-| `store_stats` | — |
+| `set_baseline` | 手工设定一个基线值（人工校准用）。 |
+| `store_stats` | 档案库自身的情况：文件大小、各表行数。 |
 | `tier_of` | 查询实例当前的能力档位。**要求 Tier2 的能力会用它来明确报错，而不是悄悄降级** |
 | `top_sql` | 出现次数最多的 SQL（一条 SQL 的一生）。 |
 | `transition_finding` | 推进发现的生命周期：open→confirmed→fixing→fixed→verified / dismissed（状态机校验）。 |
