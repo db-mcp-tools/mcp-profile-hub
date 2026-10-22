@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-profile-hub"
+version = "0.2.0"
+description = "档案中枢 MCP：实例档案、观测查询、分位数基线、发现生命周期（技术债账本）、事故、跨实例关联、知识包导入导出。"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "Proprietary"}
+
+dependencies = [
+    "dbt-core>=0.2.0",
+    "dbt-store>=0.2.0",
+    "dbt-know>=0.2.0",
+    "dbt-mcp-kit>=0.2.0",
+]
+
+[project.scripts]
+dbt-profile-hub = "profile_hub.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["py.typed", "*.yaml", "*.yml", "*.json"]
