@@ -1,5 +1,8 @@
+# 本文件由 scripts/gen-pyprojects.py 从 scripts/repo_config.py 生成，不要手改。
+# 改元数据请改 repo_config.py 后重跑：python scripts/gen-pyprojects.py
+
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,20 +10,51 @@ name = "mcp-profile-hub"
 version = "0.2.0"
 description = "档案中枢 MCP：实例档案、观测查询、分位数基线、发现生命周期（技术债账本）、事故、跨实例关联、知识包导入导出。"
 readme = "README.md"
-requires-python = ">=3.9"
-license = {text = "Proprietary"}
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "罗文星", email = "1172566410@qq.com" }]
+maintainers = [{ name = "罗文星", email = "1172566410@qq.com" }]
+keywords = ["database", "sql", "dba", "database-tooling", "llm", "mcp", "profiling", "metadata", "tech-debt", "knowledge-pack"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Database",
+    "Typing :: Typed",
+]
 
 dependencies = [
-    "dbt-core[mcp]>=0.2.0",
-    "dbt-store>=0.2.0",
-    "dbt-know>=0.2.0",
+    "sqltk-core[mcp]>=0.2.0",
+    "sqltk-store>=0.2.0",
+    "sqltk-know>=0.2.0",
 ]
 
 [project.scripts]
-dbt-profile-hub = "profile_hub.cli:main"
+mcp-profile-hub = "profile_hub.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/YOUR_GH_OWNER/mcp-profile-hub"
+Repository = "https://github.com/YOUR_GH_OWNER/mcp-profile-hub"
+Issues = "https://github.com/YOUR_GH_OWNER/mcp-profile-hub/issues"
+Changelog = "https://github.com/YOUR_GH_OWNER/db-ai-toolchain/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
 "*" = ["py.typed", "*.yaml", "*.yml", "*.json"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["F", "E9"]

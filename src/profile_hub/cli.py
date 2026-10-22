@@ -1,9 +1,9 @@
 """命令行入口：档案中枢 MCP：实例档案、观测查询、分位数基线、发现生命周期（技术债账本）、事故、跨实例关联、知识包导入导出。
 
 两条命令就够用（不需要记每个工具的参数）：
-    dbt-profile-hub tools                       列出本 MCP 的全部工具
-    dbt-profile-hub call <tool> --args '{"sql": "SELECT ..."}' [--json]
-    dbt-profile-hub call <tool> --help-args     查看该工具的参数签名
+    mcp-profile-hub tools                       列出本 MCP 的全部工具
+    mcp-profile-hub call <tool> --args '{"sql": "SELECT ..."}' [--json]
+    mcp-profile-hub call <tool> --help-args     查看该工具的参数签名
 """
 
 from __future__ import annotations
@@ -60,7 +60,7 @@ def cmd_call(args) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(prog="dbt-profile-hub", description="档案中枢 MCP：实例档案、观测查询、分位数基线、发现生命周期（技术债账本）、事故、跨实例关联、知识包导入导出。")
+    p = argparse.ArgumentParser(prog="mcp-profile-hub", description="档案中枢 MCP：实例档案、观测查询、分位数基线、发现生命周期（技术债账本）、事故、跨实例关联、知识包导入导出。")
     p.add_argument("--json", action="store_true", help="JSON 输出")
     sub = p.add_subparsers(dest="cmd", required=True)
 

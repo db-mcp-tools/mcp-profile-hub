@@ -7,11 +7,11 @@
 ## 安装（按需，不必装其他 MCP）
 
 ```bash
-pip install ./mcp-profile-hub              # 在工具链根目录下执行
-pip install "./mcp-profile-hub[mysql]"     # 需要连库时补驱动，或 [postgres]
+pip install mcp-profile-hub                        # 从 PyPI
+pip install "./mcp-profile-hub[mysql]"             # 从源码（在工具链根目录执行）；要连库就补驱动，或 [postgres]
 ```
 
-会自动带上它需要的共享库：`dbt-core`（指纹/协议）、`dbt-store`（真正干活的存储库）、`dbt-know`（指标字典）。**不会**带其他 MCP。
+会自动带上它需要的共享库：`sqltk-core`（指纹/协议）、`sqltk-store`（真正干活的存储库）、`sqltk-know`（指标字典）。**不会**带其他 MCP。
 
 ## 挂到 MCP 客户端
 
@@ -32,8 +32,8 @@ pip install "./mcp-profile-hub[mysql]"     # 需要连库时补驱动，或 [pos
 命令行调试（不挂客户端也能用）：
 
 ```bash
-dbt-profile-hub tools
-dbt-profile-hub call <tool> --args '{"sql": "SELECT 1"}'
+mcp-profile-hub tools
+mcp-profile-hub call <tool> --args '{"sql": "SELECT 1"}'
 ```
 
 ## 工具（24）
@@ -76,10 +76,14 @@ dbt-profile-hub call <tool> --args '{"sql": "SELECT 1"}'
 ## 边界：这个仓不做什么
 
 本 MCP **不含任何判断逻辑**，只负责把其他 MCP 产生的档案读写、聚合、导出。
-其他 MCP 不通过 MCP 协议调它，而是直接依赖 `dbt-store` 这个库写同一个 SQLite —— 少一跳，且装不装 hub 都不影响记录。
+其他 MCP 不通过 MCP 协议调它，而是直接依赖 `sqltk-store` 这个库写同一个 SQLite —— 少一跳，且装不装 hub 都不影响记录。
 
 ## 开发
 
 ```bash
 python tests/test_profile_hub.py      # 不需要 pytest，也不需要数据库
 ```
+
+## 许可
+
+MIT © 2026 罗文星 —— 见 [LICENSE](LICENSE)。
