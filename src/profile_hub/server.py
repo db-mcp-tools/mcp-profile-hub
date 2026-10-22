@@ -22,7 +22,7 @@ from __future__ import annotations
 import os
 import time
 
-from dbcore.mcp_kit import make_server, register
+from dbcore.mcp_kit import cli, make_server, register
 from dbcore import ids as IDS
 from dbknow import metrics as M
 from dbstore import (
@@ -531,9 +531,10 @@ for _n, _f in TOOLS.items():
     register(mcp, MCP_NAME, _f, _n)
 
 
-def main() -> None:  # pragma: no cover
-    mcp.run()
+def main() -> int:  # pragma: no cover
+    """命令行入口：无参数起 stdio server；tools / call 见 dbcore.mcp_kit.cli。"""
+    return cli(MCP_NAME, TOOLS, mcp)
 
 
 if __name__ == "__main__":  # pragma: no cover
-    main()
+    raise SystemExit(main())
