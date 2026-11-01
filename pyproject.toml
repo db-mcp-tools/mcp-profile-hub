@@ -41,10 +41,10 @@ dependencies = [
 mcp-profile-hub = "profile_hub.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/Apollo-lwx/mcp-profile-hub"
-Repository = "https://github.com/Apollo-lwx/mcp-profile-hub"
-Issues = "https://github.com/Apollo-lwx/mcp-profile-hub/issues"
-Changelog = "https://github.com/Apollo-lwx/db-ai-toolchain/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/db-mcp-tools/mcp-profile-hub"
+Repository = "https://github.com/db-mcp-tools/mcp-profile-hub"
+Issues = "https://github.com/db-mcp-tools/mcp-profile-hub/issues"
+Changelog = "https://github.com/db-mcp-tools/db-ai-toolchain/blob/master/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["src"]
